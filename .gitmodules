@@ -25,3 +25,6 @@
 [submodule "modules\\mHTTPConnection"]
 	path = modules\\mHTTPConnection
 	url = https://github.com/SkyLined/mHTTPConnection
+[submodule "modules\\mMultiThreading"]
+	path = modules\\mMultiThreading
+	url = https://github.com/SkyLined/mMultiThreading
