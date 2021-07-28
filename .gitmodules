@@ -31,3 +31,6 @@
 [submodule "modules\\mNotProvided"]
 	path = modules\\mNotProvided
 	url = https://github.com/SkyLined/mNotProvided
+[submodule "modules\\mTCPIPConnection"]
+	path = modules\\mTCPIPConnection
+	url = https://github.com/SkyLined/mTCPIPConnection
