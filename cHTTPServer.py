@@ -305,7 +305,7 @@ class cHTTPServer(cWithCallbacks):
         assert isinstance(oResponse, cHTTPResponse), \
             "Request handler must return a cHTTPResponse, got %s" % oResponse.__class__.__name__;
         if oSelf.__bStopping:
-          oResponse.oHeaders.fbReplaceHeadersForName(b"Connection", b"Close");
+          oResponse.oHeaders.fbReplaceHeadersForNameAndValue(b"Connection", b"Close");
         # Send response, handle errors
         fShowDebugOutput("Sending response %s to %s..." % (oResponse, oConnection));
         try:
