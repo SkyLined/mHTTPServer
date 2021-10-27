@@ -26,6 +26,7 @@ from .mExceptions import *;
 gnDeadlockTimeoutInSeconds = 1; # We're not doing anything time consuming, so this should suffice.
 
 class cHTTPServer(cWithCallbacks):
+  bSSLIsSupported = m0SSL is not None;
   n0DefaultTransactionTimeoutInSeconds = 10;
   n0DefaultIdleTimeoutInSeconds = 60;
   
@@ -354,3 +355,6 @@ class cHTTPServer(cWithCallbacks):
   
   def __str__(oSelf):
     return "%s#%X{%s}" % (oSelf.__class__.__name__, id(oSelf), ", ".join(oSelf.fasGetDetails()));
+
+for cException in acExceptions:
+  setattr(cHTTPServer, cException.__name__, cException);
