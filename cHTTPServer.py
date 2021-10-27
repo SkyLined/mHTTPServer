@@ -29,6 +29,7 @@ class cHTTPServer(cWithCallbacks):
   bSSLIsSupported = m0SSL is not None;
   n0DefaultTransactionTimeoutInSeconds = 10;
   n0DefaultIdleTimeoutInSeconds = 60;
+  sbDefaultHostname = cHTTPConnectionAcceptor.sbDefaultHostname;
   
   @ShowDebugOutput
   def __init__(oSelf,
