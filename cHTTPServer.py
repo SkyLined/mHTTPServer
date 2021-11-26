@@ -206,6 +206,7 @@ class cHTTPServer(cWithCallbacks):
   @ShowDebugOutput
   def __fHandleNewConnection(oSelf, oConnectionAcceptor, oConnection):
     fShowDebugOutput("New connection %s..." % (oConnection,));
+    oSelf.fFireCallbacks("new connection", oConnection);
     oSelf.__oPropertyAccessTransactionLock.fAcquire();
     try:
       assert not oSelf.bTerminated, \
