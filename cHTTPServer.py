@@ -243,23 +243,24 @@ class cHTTPServer(cWithCallbacks):
     try:
       while not oSelf.__bStopping:
         # Wait for a request if needed and start a transaction, handle errors.
-        bTransactionStarted = False;
         try:
           try:
             if not oConnection.fbBytesAreAvailableForReading():
               fShowDebugOutput("Waiting for request from %s..." % oConnection);
-              bTransactionStarted = oConnection.fbWaitUntilBytesAreAvailableForReadingAndStartTransaction(
+              oConnection.fWaitUntilBytesAreAvailableForReadingAndStartTransaction(
                 n0WaitTimeoutInSeconds = oSelf.__n0IdleTimeoutInSeconds,
                 n0TransactionTimeoutInSeconds = oSelf.__n0TransactionTimeoutInSeconds,
               );
             else:
-              bTransactionStarted = oConnection.fbStartTransaction(oSelf.__n0TransactionTimeoutInSeconds);
+              oConnection.fStartTransaction(oSelf.__n0TransactionTimeoutInSeconds);
           except cTCPIPConnectionShutdownException as oException:
             fShowDebugOutput("Connection %s was shutdown." % oConnection);
-            if not bTransactionStarted:
-              assert oConnection.fbStartTransaction(oSelf.__n0TransactionTimeoutInSeconds), \
-                  "Cannot start a transaction to disconnect the connection!?";
-            oConnection.fDisconnect();
+            try:
+              oConnection.fStartTransaction(oSelf.__n0TransactionTimeoutInSeconds);
+            except cTCPIPConnectionDisconnectedException:
+              pass;
+            else:
+              oConnection.fDisconnect();
             break;
         except cTCPIPConnectionDisconnectedException as oException:
           fShowDebugOutput("Connection %s was disconnected." % oConnection);
@@ -269,11 +270,6 @@ class cHTTPServer(cWithCallbacks):
           oSelf.fFireCallbacks("idle timeout", oConnection);
           oConnection.fStop();
           break;
-        # We should be the only ones using this connection, so we should always
-        # be able to start a transaction. If this fails, some other code must
-        # have start a transaction, or be waiting on bytes to do so.
-        bTransactionStarted, \
-            "Cannot start a transaction on %s!" % oConnection;
         # Read request, handle errors.
         fShowDebugOutput("Reading request from %s..." % oConnection);
         try:
