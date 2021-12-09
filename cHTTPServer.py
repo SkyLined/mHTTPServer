@@ -68,12 +68,12 @@ class cHTTPServer(cWithCallbacks):
     );
     
     oSelf.fAddEvents(
-      "new connection",
+      "connection from client received",
       "idle timeout",
       "request error", "request received",
       "response error", "response sent",
       "request received and response sent",
-      "connection terminated",
+      "connection from client terminated",
       "terminated"
     );
     
@@ -206,13 +206,24 @@ class cHTTPServer(cWithCallbacks):
   @ShowDebugOutput
   def __fHandleNewConnection(oSelf, oConnectionAcceptor, oConnection):
     fShowDebugOutput("New connection %s..." % (oConnection,));
-    oSelf.fFireCallbacks("new connection", oConnection);
+    oSelf.fFireCallbacks("connection from client received", oConnection);
+    oConnection.fAddCallbacks({
+      "request received": lambda oConnection, oRequest: oSelf.fFireCallbacks(
+        "request received", oConnection, oRequest,
+      ),
+      "response sent":lambda oConnection, oResponse: oSelf.fFireCallbacks(
+        "response sent", oConnection, oResponse,
+      ),
+      "request received and response sent": lambda oConnection, oRequest, oResponse: oSelf.fFireCallbacks(
+        "request received and response sent", oConnection, oRequest, oResponse,
+      ),
+    });
     oSelf.__oPropertyAccessTransactionLock.fAcquire();
     try:
       assert not oSelf.bTerminated, \
         "Received a new connection after we've terminated!?";
       if oSelf.__bStopping:
-        fDebugOutput("Stopping connection since we are stopping...");
+        fShowDebugOutput("Stopping connection since we are stopping...");
         bHandleConnection = False;
       else:
         oThread = cThread(oSelf.__fConnectionThread, oConnection);
@@ -235,7 +246,7 @@ class cHTTPServer(cWithCallbacks):
       oSelf.__aoConnections.remove(oConnection);
     finally:
       oSelf.__oPropertyAccessTransactionLock.fRelease();
-    oSelf.fFireCallbacks("connection terminated", oConnection);
+    oSelf.fFireCallbacks("connection from client terminated", oConnection);
     oSelf.__fCheckForTermination();
   
   @ShowDebugOutput
@@ -294,7 +305,6 @@ class cHTTPServer(cWithCallbacks):
           oSelf.fFireCallbacks("request error", oConnection, oException);
           oConnection.fTerminate();
           break;
-        oSelf.fFireCallbacks("request received", oConnection, oRequest);
         
         # Have the request handler generate a response to the request object
         oResponse, bContinueHandlingRequests = oSelf.__ftxRequestHandler(oSelf, oConnection, oRequest);
@@ -321,8 +331,6 @@ class cHTTPServer(cWithCallbacks):
           oSelf.fFireCallbacks("response error", oConnection, oException, oRequest, oResponse);
           if oConnection.bConnected: oConnection.fDisconnect();
           break;
-        oSelf.fFireCallbacks("response sent", oConnection, oResponse);
-        oSelf.fFireCallbacks("request received and response sent", oConnection, oRequest, oResponse);
         if not bContinueHandlingRequests:
           fShowDebugOutput("Stopped handling requests at the request of the request handler.");
           break;
