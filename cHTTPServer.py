@@ -71,6 +71,7 @@ class cHTTPServer(cWithCallbacks):
     oSelf.fAddEvents(
       "connection from client received",
       "idle timeout",
+      "bytes read", "bytes written",
       "request error", "request received",
       "response error", "response sent",
       "request received and response sent",
@@ -206,6 +207,14 @@ class cHTTPServer(cWithCallbacks):
   
   @ShowDebugOutput
   def __fHandleNewConnection(oSelf, oConnectionAcceptor, oConnection):
+    oConnection.fAddCallbacks({
+      "bytes read": lambda oConnection, sbBytesRead: oSelf.fFireCallbacks(
+        "bytes read", oConnection, sbBytesRead,
+      ),
+      "bytes written": lambda oConnection, sbBytesWritten: oSelf.fFireCallbacks(
+        "bytes written", oConnection, sbBytesWritten,
+      ),
+    });
     fShowDebugOutput("New connection %s..." % (oConnection,));
     oSelf.fFireCallbacks("connection from client received", oConnection);
     oConnection.fAddCallbacks({
