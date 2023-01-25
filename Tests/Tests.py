@@ -41,7 +41,6 @@ try:
   import os, sys;
   
   import mHTTPServer;
-  from mMultiThreading import cLock;
   
   try: # mSSL use is optional
     import mSSL as m0SSL;

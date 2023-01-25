@@ -1,5 +1,3 @@
-import socket;
-
 try: # mDebugOutput use is Optional
   from mDebugOutput import ShowDebugOutput, fShowDebugOutput;
 except ModuleNotFoundError as oException:
@@ -15,11 +13,19 @@ except ModuleNotFoundError as oException:
     raise;
   m0SSL = None;
 
-from mHTTPConnection import cHTTPConnection, cHTTPConnectionAcceptor, cHTTPResponse, cURL;
+from mHTTPConnection import cHTTPConnectionAcceptor, cHTTPResponse, cURL;
 from mMultiThreading import cLock, cThread, cWithCallbacks;
-from mNotProvided import *;
+from mNotProvided import \
+    fAssertType, \
+    fxGetFirstProvidedValue, \
+    zNotProvided;
 
-from .mExceptions import *;
+from .mExceptions import \
+    acExceptions, \
+    cHTTPInvalidMessageException, \
+    cTCPIPConnectionDisconnectedException, \
+    cTCPIPConnectionShutdownException, \
+    cTCPIPDataTimeoutException;
 
 # To turn access to data store in multiple variables into a single transaction, we will create locks.
 # These locks should only ever be locked for a short time; if it is locked for too long, it is considered a "deadlock"
