@@ -293,7 +293,7 @@ class cHTTPServer(cWithCallbacks):
           # Read request, handle errors.
           fShowDebugOutput("Reading request from %s..." % oConnection);
           try:
-            oRequest = oConnection.foReceiveRequest(bStartTransaction = False);
+            oRequest = oConnection.foReceiveRequest();
           except cTCPIPConnectionShutdownException as oException:
             fShowDebugOutput("Shutdown while reading request from %s: %s." % (oConnection, oException));
             oSelf.fFireCallbacks("request error", oConnection, oException);
@@ -325,7 +325,7 @@ class cHTTPServer(cWithCallbacks):
           # Send response, handle errors
           fShowDebugOutput("Sending response %s to %s..." % (oResponse, oConnection));
           try:
-            oConnection.fSendResponse(oResponse, bEndTransaction = False);
+            oConnection.fSendResponse(oResponse);
           except Exception as oException:
             if isinstance(oException, cTCPIPConnectionShutdownException):
               fShowDebugOutput("Connection %s was shutdown while sending response %s." % (oConnection, oResponse));
