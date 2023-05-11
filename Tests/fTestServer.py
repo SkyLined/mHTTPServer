@@ -35,7 +35,7 @@ def fTestServer(
     assert o0ServerSideSSLContext, \
         "No Certificate for hostname %s has been created using the Certificate Authority!" % repr(oServerURL.sbHostname);
     oConsole.fOutput("* o0ClientSideSSLContext for ", str(oServerURL.sbHostname, 'latin1'), ": ", str(o0ClientSideSSLContext));
-    o0ClientSidePythonSSLContext = o0ClientSideSSLContext.oPythonSLLContext;
+    o0ClientSidePythonSSLContext = o0ClientSideSSLContext.oPythonSSLContext;
   else:
     o0ServerSideSSLContext = None;
     o0ClientSidePythonSSLContext = None;
