@@ -13,7 +13,7 @@ def ftxRequestHandler(
   oConsole.fOutput("Client->Server oRequest: ", str(oRequest));
   oResponse = oConnection.foCreateResponse(s0Data = "Hello, world!");
   oConsole.fOutput("Client<-Server oResponse: ", str(oResponse));
-  return (oResponse, True);
+  return (oResponse, None);
 
 def fTestServer(
   o0CertificateAuthority,

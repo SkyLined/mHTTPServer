@@ -314,37 +314,58 @@ class cHTTPServer(cWithCallbacks):
             oConnection.fTerminate();
             break;
           # Have the request handler generate a response to the request object
-          oResponse, bContinueHandlingRequests = oSelf.__ftxRequestHandler(oSelf, oConnection, oRequest);
-          if oResponse is None:
-            # The server should not sent a response.
-            break;
-          assert isinstance(oResponse, cHTTPResponse), \
-              "Request handler must return a cHTTPResponse, got %s" % oResponse.__class__.__name__;
-          if oSelf.__bStopping:
-            oResponse.oHeaders.fbReplaceHeadersForNameAndValue(b"Connection", b"Close");
-          # Send response, handle errors
-          fShowDebugOutput("Sending response %s to %s..." % (oResponse, oConnection));
-          try:
-            oConnection.fSendResponse(oResponse);
-          except Exception as oException:
-            if isinstance(oException, cTCPIPConnectionShutdownException):
-              fShowDebugOutput("Connection %s was shutdown while sending response %s." % (oConnection, oResponse));
-            elif isinstance(oException, cTCPIPConnectionDisconnectedException):
-              fShowDebugOutput("Connection %s was disconnected while sending response %s." % (oConnection, oResponse));
-            elif isinstance(oException, cTCPIPDataTimeoutException):
-              fShowDebugOutput("Sending response to %s timed out." % (oConnection, oException));
-            else:
-              raise;
-            oSelf.fFireCallbacks("response error", oConnection, oException, oRequest, oResponse);
-            if oConnection.bConnected: oConnection.fDisconnect();
-            break;
+          o0Response, f0NextConnectionHandler = oSelf.__ftxRequestHandler(oSelf, oConnection, oRequest);
+          assert o0Response is None or isinstance(o0Response, cHTTPResponse), \
+              "The request handler function returned an invalid o0Response: %s" % repr(o0Response);
+          assert f0NextConnectionHandler is None or callable(f0NextConnectionHandler), \
+              "The request handler function returned an invalid f0NextConnectionHandler: %s" % repr(o0Response);
+          
+          if o0Response:
+            oResponse = o0Response;
+            if oSelf.__bStopping:
+              oResponse.oHeaders.fbReplaceHeadersForNameAndValue(b"Connection", b"Close");
+            # Send response, handle errors
+            fShowDebugOutput("Sending response %s to %s..." % (oResponse, oConnection));
+            try:
+              oConnection.fSendResponse(oResponse);
+            except Exception as oException:
+              if isinstance(oException, cTCPIPConnectionShutdownException):
+                fShowDebugOutput("Connection %s was shutdown while sending response %s." % (oConnection, oResponse));
+              elif isinstance(oException, cTCPIPConnectionDisconnectedException):
+                fShowDebugOutput("Connection %s was disconnected while sending response %s." % (oConnection, oResponse));
+              elif isinstance(oException, cTCPIPDataTimeoutException):
+                fShowDebugOutput("Sending response to %s timed out." % (oConnection, oException));
+              else:
+                raise;
+              oSelf.fFireCallbacks("response error", oConnection, oException, oRequest, oResponse);
+              if oConnection.bConnected: oConnection.fDisconnect();
+              break;
+          else:
+            assert f0NextConnectionHandler, \
+                (
+                  "This server expects to return a reponse to the client and/or pass the " +
+                  "connection to another connection handler. If you have a good reason to " +
+                  "do neither, please replace this assert with some documentation that " +
+                  "explains the context in which this makes sense."
+                );
         finally:
           # End the transaction
           oConnection.fEndTransaction();
-        if not bContinueHandlingRequests:
-          fShowDebugOutput("Stopped handling requests at the request of the request handler.");
+        if f0NextConnectionHandler:
+          fShowDebugOutput("Stopped handling requests at the request of the request handler");
+          fShowDebugOutput("Passing the connection to the next connection handler.");
+          f0NextConnectionHandler(oConnection);
+          fShowDebugOutput("The next connection handler is finished, terminating the connection.");
+          if oConnection.bConnected: oConnection.fDisconnect();
           break;
     finally:
+      try:
+        oConnection.fStartTransaction(
+          n0TimeoutInSeconds = 0,
+        );
+        oConnection.fDisconnect();
+      except cTCPIPConnectionDisconnectedException:
+        pass;
       oSelf.__oPropertyAccessTransactionLock.fAcquire();
       try:
         oSelf.__aoConnectionThreads.remove(oThread);
