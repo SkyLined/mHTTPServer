@@ -35,21 +35,21 @@ def fTestServer(
     assert o0ServerSideSSLContext, \
         "No Certificate for hostname %s has been created using the Certificate Authority!" % repr(oServerURL.sbHostname);
     oConsole.fOutput("* o0ClientSideSSLContext for ", str(oServerURL.sbHostname, 'latin1'), ": ", str(o0ClientSideSSLContext));
-    o0ClientSidePythonSSLContext = o0ClientSideSSLContext.oPythonSSLContext;
+    o0ClientSidePythonSSLContextWithCheckHostname = o0ClientSideSSLContext._cSSLContext__o0PythonSSLContextWithCheckHostname;
   else:
     o0ServerSideSSLContext = None;
-    o0ClientSidePythonSSLContext = None;
+    o0ClientSidePythonSSLContextWithCheckHostname = None;
   oConsole.fOutput("\u2500\u2500\u2500\u2500 Creating a cHTTPServer instance at %s... " % oServerURL, sPadding = "\u2500");
   oHTTPServer = cHTTPServer(ftxRequestHandler, oServerURL.sbHostname, oServerURL.uPortNumber, o0ServerSideSSLContext);
   if f0LogEvents: f0LogEvents(oHTTPServer, "oHTTPServer");
   oConsole.fOutput("\u2500\u2500\u2500\u2500 Making a first test request to %s... " % oServerURL, sPadding = "\u2500");
   sServerURL = str(oServerURL.sbAbsolute, "ascii", "strict");
-  oResponse = urllib.request.urlopen(sServerURL, context = o0ClientSidePythonSSLContext);
+  oResponse = urllib.request.urlopen(sServerURL, context = o0ClientSidePythonSSLContextWithCheckHostname);
   assert guRequestsRecieved == 1, \
       "The server was expected to have received 1 request, but got %d instead" % guRequestsRecieved;
   oConsole.fOutput(repr(oResponse));
   oConsole.fOutput("\u2500\u2500\u2500\u2500 Making a second test request to %s... " % oServerURL, sPadding = "\u2500");
-  oResponse = urllib.request.urlopen(sServerURL, context = o0ClientSidePythonSSLContext);
+  oResponse = urllib.request.urlopen(sServerURL, context = o0ClientSidePythonSSLContextWithCheckHostname);
   assert guRequestsRecieved == 2, \
       "The server was expected to have received 2 requests, but got %d instead" % guRequestsRecieved;
   oConsole.fOutput(repr(oResponse));
