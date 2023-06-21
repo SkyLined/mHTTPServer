@@ -356,14 +356,16 @@ class cHTTPServer(cWithCallbacks):
           fShowDebugOutput("Passing the connection to the next connection handler.");
           f0NextConnectionHandler(oConnection);
           fShowDebugOutput("The next connection handler is finished, terminating the connection.");
-          if oConnection.bConnected: oConnection.fDisconnect();
           break;
     finally:
       try:
         oConnection.fStartTransaction(
           n0TimeoutInSeconds = 0,
         );
-        oConnection.fDisconnect();
+        try:
+          oConnection.fDisconnect();
+        finally:
+          oConnection.fEndTransaction();
       except cTCPIPConnectionDisconnectedException:
         pass;
       oSelf.__oPropertyAccessTransactionLock.fAcquire();
