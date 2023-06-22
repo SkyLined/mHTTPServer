@@ -314,7 +314,11 @@ class cHTTPServer(cWithCallbacks):
             oConnection.fTerminate();
             break;
           # Have the request handler generate a response to the request object
-          o0Response, f0NextConnectionHandler = oSelf.__ftxRequestHandler(oSelf, oConnection, oRequest);
+          (
+            o0Response,
+            bDisconnectAfterOptionallySendingResponse,
+            f0NextConnectionHandler
+          ) = oSelf.__ftxRequestHandler(oSelf, oConnection, oRequest);
           assert o0Response is None or isinstance(o0Response, cHTTPResponse), \
               "The request handler function returned an invalid o0Response: %s" % repr(o0Response);
           assert f0NextConnectionHandler is None or callable(f0NextConnectionHandler), \
@@ -330,24 +334,33 @@ class cHTTPServer(cWithCallbacks):
               oConnection.fSendResponse(oResponse);
             except Exception as oException:
               if isinstance(oException, cTCPIPConnectionShutdownException):
-                fShowDebugOutput("Connection %s was shutdown while sending response %s." % (oConnection, oResponse));
+                fShowDebugOutput("Connection %s was shut down while sending response %s." % (oConnection, oResponse));
+                if oConnection.bConnected:
+                  fShowDebugOutput("Closing connection because it was shut down...");
               elif isinstance(oException, cTCPIPConnectionDisconnectedException):
                 fShowDebugOutput("Connection %s was disconnected while sending response %s." % (oConnection, oResponse));
               elif isinstance(oException, cTCPIPDataTimeoutException):
                 fShowDebugOutput("Sending response to %s timed out." % (oConnection, oException));
+                if oConnection.bConnected:
+                  fShowDebugOutput("Closing connection because of a response timeout...");
               else:
                 raise;
               oSelf.fFireCallbacks("response error", oConnection, oException, oRequest, oResponse);
-              if oConnection.bConnected: oConnection.fDisconnect();
+              break;
+            if oSelf.__bStopping:
+              if oConnection.bConnected: 
+                fShowDebugOutput("Closing connection to stop server...");
+              break;
+            if bDisconnectAfterOptionallySendingResponse:
+              fShowDebugOutput("Closing connection per request handler...");
               break;
           else:
-            assert f0NextConnectionHandler, \
-                (
-                  "This server expects to return a reponse to the client and/or pass the " +
-                  "connection to another connection handler. If you have a good reason to " +
-                  "do neither, please replace this assert with some documentation that " +
-                  "explains the context in which this makes sense."
-                );
+            # (None, False, None) makes no sense:
+            assert bDisconnectAfterOptionallySendingResponse, \
+                "Request handler did not tell us what to do.";
+            if oConnection.bConnected: 
+              fShowDebugOutput("Closing connection without response per request handler...");
+            break;
         finally:
           # End the transaction
           oConnection.fEndTransaction();
@@ -355,7 +368,8 @@ class cHTTPServer(cWithCallbacks):
           fShowDebugOutput("Stopped handling requests at the request of the request handler");
           fShowDebugOutput("Passing the connection to the next connection handler.");
           f0NextConnectionHandler(oConnection);
-          fShowDebugOutput("The next connection handler is finished, terminating the connection.");
+          if oConnection.bConnected: 
+            fShowDebugOutput("Closing connection because the next connection handler is finished...");
           break;
     finally:
       try:

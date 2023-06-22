@@ -13,7 +13,11 @@ def ftxRequestHandler(
   oConsole.fOutput("Client->Server oRequest: ", str(oRequest));
   oResponse = oConnection.foCreateResponse(s0Data = "Hello, world!");
   oConsole.fOutput("Client<-Server oResponse: ", str(oResponse));
-  return (oResponse, None);
+  return (
+    oResponse,
+    oRequest.bIndicatesConnectionShouldBeClosed,
+    None, # No next connection handler
+  );
 
 def fTestServer(
   o0CertificateAuthority,
