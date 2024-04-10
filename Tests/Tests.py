@@ -114,10 +114,10 @@ try:
       "Cannot test both quick and full!";
   
   nEndWaitTimeoutInSeconds = 10;
-  sbTestHostname = b"localhost";
+  sbTestHost = b"localhost";
   
-  oLocalNonSecureURL = mHTTPServer.cURL.foFromBytesString(b"http://%s:28876/local-non-secure" % sbTestHostname);
-  oLocalSecureURL = mHTTPServer.cURL.foFromBytesString(b"https://%s:28876/local-secure" % sbTestHostname);
+  oLocalNonSecureURL = mHTTPServer.cURL.foFromBytesString(b"http://%s:28876/local-non-secure" % sbTestHost);
+  oLocalSecureURL = mHTTPServer.cURL.foFromBytesString(b"https://%s:28876/local-secure" % sbTestHost);
   oConsole.fOutput("\u2500\u2500\u2500\u2500 Creating a cCertificateStore instance ".ljust(160, "\u2500"));
   
   if m0SSL is not None:
@@ -132,8 +132,8 @@ try:
       else:
         oConsole.fOutput(HEADER, "\u2500\u2500\u2500\u2500 Delete Certificate Authority folder... ", sPadding = "\u2500");
         oCertificateAuthority.fDeleteCacheFolder(fShowDeleteOrOverwriteFileOrFolder);
-    # Create a self-signed certificate for the test hostname.
-    oCertificateAuthority.foGenerateServersideSSLContextForHostname(sbTestHostname);
+    # Create a self-signed certificate for the test host.
+    oCertificateAuthority.foGenerateServersideSSLContextForHost(sbTestHost);
     oConsole.fOutput("  oCertificateAuthority = %s" % oCertificateAuthority);
   
   fTestServer(

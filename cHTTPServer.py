@@ -36,17 +36,17 @@ class cHTTPServer(cWithCallbacks):
   bSSLIsSupported = m0SSL is not None;
   n0DefaultTransactionTimeoutInSeconds = 10;
   n0DefaultIdleTimeoutInSeconds = 60;
-  sbDefaultHostname = cHTTPConnectionAcceptor.sbDefaultHostname;
+  sbDefaultHost = cHTTPConnectionAcceptor.sbDefaultHost;
   
   @ShowDebugOutput
   def __init__(oSelf,
     ftxRequestHandler,
-    sbzHostname = zNotProvided, uzPortNumber = zNotProvided,
+    sbzHost = zNotProvided, uzPortNumber = zNotProvided,
     o0SSLContext = None,
     n0zTransactionTimeoutInSeconds = zNotProvided,
     n0zIdleTimeoutInSeconds = zNotProvided,
   ):
-    fAssertType("sbzHostname", sbzHostname, bytes, zNotProvided);
+    fAssertType("sbzHost", sbzHost, bytes, zNotProvided);
     fAssertType("uzPortNumber", uzPortNumber, int, zNotProvided);
     if m0SSL:
       fAssertType("o0SSLContext", o0SSLContext, m0SSL.cSSLContext, None);
@@ -87,7 +87,7 @@ class cHTTPServer(cWithCallbacks):
     
     oSelf.__oConnectionAcceptor = cHTTPConnectionAcceptor(
       fNewConnectionHandler = oSelf.__fHandleNewConnection,
-      sbzHostname = sbzHostname,
+      sbzHost = sbzHost,
       uzPortNumber = uzPortNumber,
       o0SSLContext = o0SSLContext,
       n0zSecureTimeoutInSeconds = oSelf.__n0TransactionTimeoutInSeconds,
@@ -95,8 +95,8 @@ class cHTTPServer(cWithCallbacks):
     oSelf.__oConnectionAcceptor.fAddCallback("terminated", oSelf.__HandleTerminatedCallbackFromConnectionAcceptor);
   
   @property
-  def sbHostname(oSelf):
-    return oSelf.__oConnectionAcceptor.sbHostname;
+  def sbHost(oSelf):
+    return oSelf.__oConnectionAcceptor.sbHost;
   @property
   def uPortNumber(oSelf):
     return oSelf.__oConnectionAcceptor.uPortNumber;
@@ -119,7 +119,7 @@ class cHTTPServer(cWithCallbacks):
   def foGetURL(oSelf, sb0Path = None, sb0Query = None, sb0Fragment = None):
     return cURL(
       sbProtocol = b"https" if oSelf.__oConnectionAcceptor.bSecure else b"http",
-      sbHostname = oSelf.sbHostname,
+      sbHost = oSelf.sbHost,
       u0PortNumber = oSelf.uPortNumber,
       sb0Path = sb0Path,
       sb0Query = sb0Query,
